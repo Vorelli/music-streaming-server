@@ -1,0 +1,36 @@
+{
+  "name": "music-streaming-server",
+  "version": "1.0.0",
+  "description": "Used to stream personal music library to a music-streaming-player. Can be controlled via a music-streaming-controller.",
+  "main": "index.js",
+  "scripts": {
+    "serverstart": "SET DEBUG=blog-backend:* & npm run devstart",
+    "devstart": "nodemon --trace-warnings ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vorelli/music-streaming-server.git"
+  },
+  "keywords": [
+    "music",
+    "streaming",
+    "server"
+  ],
+  "author": "Natale Toscano",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Vorelli/music-streaming-server/issues"
+  },
+  "homepage": "https://github.com/Vorelli/music-streaming-server#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "md5-file": "^5.0.0",
+    "morgan": "^1.10.0",
+    "mp3-duration": "^1.1.0",
+    "node-id3": "^0.1.19"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
