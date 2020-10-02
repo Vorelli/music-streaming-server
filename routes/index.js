@@ -16,4 +16,8 @@ router.get('/nextSong', informationalController.nextSong);
 
 router.get('/nextSongInfo', informationalController.nextSongInfo);
 
+router.get('/prevSong', informationalController.prevSong);
+
+router.get('/prevSongInfo', informationalController.prevSongInfo);
+
 module.exports = router;

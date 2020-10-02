@@ -8,7 +8,9 @@ module.exports.index = function (req, res, next) {
 module.exports.timestamp = function (req, res, next) {
   res.json({
     timestamp: req.app.locals.timestamp,
-    duration: req.app.locals.songs[req.app.locals.queue[0]].duration,
+    duration:
+      req.app.locals.songs[req.app.locals.queues[req.app.locals.queuesIndex][0]]
+        .duration,
     message: 'Currently ' + req.app.locals.status
   });
 };
@@ -24,6 +26,9 @@ module.exports.commands = function (req, res, next) {
     [ ] GET  at /currentSongInfo    - Returns the songs currently being played's info.
     [ ] GET  at /nextSong           - The next song that's going to be played.
     [ ] GET  at /nextSongInfo       - Returns the song that's going to be played next's info.
+    [ ] GET  at /nextSongDuration   - Returns the next song's duration.
+    [ ] GET  at /prevSong           - Returns the song previous in the queue.
+    [ ] GET  at /prevSongInfo       - Returns the previous song in the queue's info.
     [ ] GET  at /control            - Controls the server. Returns list of commands to be used to control server.
     [ ] POST at /control/login      - Returns a login token for use by the music-streaming-controller.
     [*] GET  at /control/queue      - Returns the currently playing queue if authorized by token.
@@ -37,17 +42,29 @@ module.exports.commands = function (req, res, next) {
 };
 
 module.exports.currentSong = function (req, res, next) {
-  res.sendFile(req.app.locals.queue[0], (err) => next(err));
+  res.sendFile(req.app.locals.queues[req.app.locals.queuesIndex][0], (err) =>
+    next(err)
+  );
 };
 
 module.exports.currentSongInfo = function (req, res, next) {
-  res.json(req.app.locals.songs[req.app.locals.queue[0]]);
+  res.json(
+    req.app.locals.songs[req.app.locals.queues[req.app.locals.queuesIndex][0]]
+  );
 };
 
 module.exports.nextSong = function (req, res, next) {
-  res.sendFile(req.app.nextQueue()[0], (err) => next(err));
+  res.sendFile(req.app.nextQueue(req.app)[0], (err) => next(err));
 };
 
 module.exports.nextSongInfo = function (req, res, next) {
-  res.json(req.app.locals.songs[req.app.nextQueue()[0]]);
+  res.json(req.app.locals.songs[req.app.nextQueue(req.app)[0]]);
+};
+
+module.exports.prevSong = function (req, res, next) {
+  res.sendFile(req.app.prevQueue(req.app)[0], (err) => next(err));
+};
+
+module.exports.prevSongInfo = function (req, res, next) {
+  res.json(req.app.locals.songs[req.app.prevQueue(req.app)[0]]);
 };
