@@ -41,30 +41,33 @@ module.exports.commands = function (req, res, next) {
   });
 };
 
-module.exports.currentSong = function (req, res, next) {
-  res.sendFile(req.app.locals.queues[req.app.locals.queuesIndex][0], (err) =>
-    next(err)
+module.exports.currentSong = async function (req, res, next) {
+  res.sendFile(
+    await req.app.locals.queues[req.app.locals.queuesIndex][0],
+    (err) => next(err)
   );
 };
 
-module.exports.currentSongInfo = function (req, res, next) {
+module.exports.currentSongInfo = async function (req, res, next) {
   res.json(
-    req.app.locals.songs[req.app.locals.queues[req.app.locals.queuesIndex][0]]
+    await req.app.locals.songs[
+      req.app.locals.queues[req.app.locals.queuesIndex][0]
+    ]
   );
 };
 
-module.exports.nextSong = function (req, res, next) {
-  res.sendFile(req.app.nextQueue(req.app)[0], (err) => next(err));
+module.exports.nextSong = async function (req, res, next) {
+  res.sendFile(await req.app.nextQueue(req.app)[0], (err) => next(err));
 };
 
-module.exports.nextSongInfo = function (req, res, next) {
-  res.json(req.app.locals.songs[req.app.nextQueue(req.app)[0]]);
+module.exports.nextSongInfo = async function (req, res, next) {
+  res.json(await req.app.locals.songs[req.app.nextQueue(req.app)[0]]);
 };
 
-module.exports.prevSong = function (req, res, next) {
-  res.sendFile(req.app.prevQueue(req.app)[0], (err) => next(err));
+module.exports.prevSong = async function (req, res, next) {
+  res.sendFile(await req.app.prevQueue(req.app)[0], (err) => next(err));
 };
 
-module.exports.prevSongInfo = function (req, res, next) {
-  res.json(req.app.locals.songs[req.app.prevQueue(req.app)[0]]);
+module.exports.prevSongInfo = async function (req, res, next) {
+  res.json(await req.app.locals.songs[req.app.prevQueue(req.app)[0]]);
 };

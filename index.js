@@ -1,11 +1,11 @@
 const express = require('express');
-const path = require('path');
+const passport = require('./middleware/passport');
 const indexRouter = require('./routes/index');
 const controlRouter = require('./routes/control');
-const status = require('./enums/status');
 const enumerateMusic = require('./helpers/enumerateMusic');
 const morgan = require('morgan');
 const http = require('http');
+const bodyParser = require('body-parser');
 const advanceTimestamp = require('./helpers/advanceTimestamp');
 const gotoNextSong = require('./helpers/controlGotoNextSong');
 const nextQueue = require('./helpers/nextQueue');
@@ -13,7 +13,17 @@ const prevQueue = require('./helpers/prevQueue');
 const afterEnumeration = require('./helpers/afterEnumeration');
 const WebSocket = require('ws');
 
+require('dotenv').config();
 const app = express();
+
+app.passport = passport.passport;
+app.pool = passport.pool;
+
+app.use(app.passport.initialize());
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 app.wss = wss;
@@ -31,25 +41,52 @@ app.use((req, res, next) => {
   next();
 });
 
-const enumerateProcess = enumerateMusic();
-enumerateProcess.then((songs) => afterEnumeration(app, songs));
-enumerateProcess.catch((err) => {
-  console.error(err);
-});
-
-app.use(morgan('dev'));
-app.use('/', indexRouter);
-app.use('/control', controlRouter);
-
-wss.on('connection', (ws) => {
-  ws.on('message', (data) => {
-    console.log(data);
-    ws.send('hiya thank you for the data!');
+const enumMusic = enumerateMusic();
+app.locals.songs = new Promise((resolve, reject) => {
+  enumMusic.then((songs) => {
+    resolve(songs);
   });
 
-  ws.send('Welcome to the server!');
+  enumMusic.catch((err) => reject(err));
 });
 
-server.listen(process.env.PORT || 8080, () => {
-  console.log('server started on port: ' + server.address().port);
+app.locals.songs.then((value) => {
+  app.locals.songs = value;
+});
+
+enumMusic.then(async (_) => {
+  const after = afterEnumeration(app, await app.locals.songs);
+  after.catch((err) => console.error(err));
+
+  app.use(morgan('dev'));
+  app.use((req, res, next) => {
+    req.app.passport.authenticate(
+      'jwt',
+      { session: false },
+      (err, user, info) => {
+        if (err) next(err);
+        else if (user) res.locals.currentUser = user;
+        next();
+      }
+    )(req, res);
+  });
+
+  app.use('/', indexRouter);
+  app.use('/control', controlRouter);
+
+  wss.on('connection', (ws) => {
+    ws.send('Welcome to the server!');
+  });
+
+  server.listen(process.env.PORT || 8080, '0.0.0.0', () => {
+    console.log(
+      'server started on at ' +
+        server.address().address +
+        ':' +
+        server.address().port
+    );
+  });
+});
+enumMusic.catch((err) => {
+  console.error(err);
 });
