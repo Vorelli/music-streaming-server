@@ -4,6 +4,11 @@ const jwt = require('jsonwebtoken');
 const { v5 } = require('uuid');
 const bcrypt = require('bcrypt');
 const { pool } = require('../middleware/passport');
+const formidable = require('formidable');
+const controlPausePlay = require('../helpers/controlPausePlay');
+const controlGotoNextSong = require('../helpers/controlGotoNextSong');
+const controlGotoPrevSong = require('../helpers/controlGotoPrevSong');
+const controlAdjustTime = require('../helpers/controlAdjustTime');
 
 module.exports.indexGET = function (req, res, next) {
   res.json({
@@ -17,9 +22,9 @@ module.exports.indexGET = function (req, res, next) {
     [X][*] GET  at /control/songs      - Returns all of the songs the server can play.
     [X][*] GET  at /control/queue      - Returns the currently playing queue if authorized by token.
     [ ][*] POST at /control/queue      - Sets the currently playing queue.
-    [ ][*] GET  at /control/playpause  - Plays/pauses current song.
-    [ ][*] GET  at /control/next       - Skips the current song and starts playing the next song.
-    [ ][*] GET  at /control/prev       - Goes to previous song.
+    [X][*] GET  at /control/playpause  - Plays/pauses current song.
+    [X][*] GET  at /control/next       - Skips the current song and starts playing the next song.
+    [X][*] GET  at /control/prev       - Goes to previous song.
     [ ][*] POST at /control/time       - Controls the time of the currently played song.
     * - Designates which actions require authorization.
     X - Designates which actions have been coded (DEVELOPMENT)
@@ -28,6 +33,19 @@ module.exports.indexGET = function (req, res, next) {
 };
 
 module.exports.loginPOST = [
+  (req, res, next) => {
+    const form = formidable.IncomingForm({ multiples: true });
+    form.parse(req, function (err, fields) {
+      if (err) next(err);
+      else {
+        Object.keys(fields).forEach((key) => {
+          req.body[key] = fields[key];
+        });
+      }
+    });
+    next();
+  },
+
   validator.body('*').escape(),
 
   validator
@@ -40,18 +58,19 @@ module.exports.loginPOST = [
 
   (req, res, next) => {
     const errors = validationResult(req);
+    console.log(req.body);
 
     req.app.passport.authenticate(
       'local',
       { session: false },
       (err, user, info) => {
         if (err || !user) {
-          errors.push('Incorrect email/password combination.');
+          console.error(err, user);
         } else {
           req.login(user, { session: false }, (err) => {
             if (err) res.json({ err });
             else {
-              const token = jwt.sign(user, process.env.SECRET);
+              const token = '' + jwt.sign(user, process.env.SECRET);
               return res.json({ user, token });
             }
           });
@@ -185,7 +204,7 @@ module.exports.songsGET = async function (req, res, next) {
   const songKeys = Object.keys(req.app.locals.songs);
   songKeys.forEach(async (key, index) => {
     const song = await req.app.locals.songs[key];
-    const tagsWithoutImage = song.tags;
+    const tagsWithoutImage = Object.assign({}, song.tags);
     tagsWithoutImage.image = undefined;
 
     const tagsSimplified = {
@@ -220,10 +239,29 @@ module.exports.queuePOST = function (req, res, next) {
   res.json({ message: 'Set the queue!' });
 };
 
-module.exports.playpauseGET = function (req, res, next) {};
+module.exports.playpauseGET = function (req, res, next) {
+  controlPausePlay(req.app);
+  res.json({
+    message: 'Successfully ' + req.app.locals.status.toString() + ' the song!'
+  });
+};
 
-module.exports.nextGET = function (req, res, next) {};
+module.exports.nextGET = function (req, res, next) {
+  controlGotoNextSong(req.app);
+  res.json({ message: 'Successfully went to next song!' });
+};
 
-module.exports.prevGET = function (req, res, next) {};
+module.exports.prevGET = function (req, res, next) {
+  controlGotoPrevSong(req.app);
+  res.json({ message: 'Successfully went to previous song! ' });
+};
 
-module.exports.timePOST = function (req, res, next) {};
+module.exports.timePOST = function (req, res, next) {
+  // get time from req.... then give it to controlAdjustTime]
+  const time = Number.parseInt(req.body.time);
+  console.log(req.body);
+  controlAdjustTime(req.app, time);
+  res.json({
+    message: 'Successfully set the server to ' + time + ' milliseconds.'
+  });
+};

@@ -23,14 +23,34 @@ router.get(
   musicController.queueGET
 );
 
-router.post('/queue', musicController.queuePOST);
+router.post(
+  '/queue',
+  passport.authenticate('jwt', { session: false }),
+  musicController.queuePOST
+);
 
-router.get('/playpause', musicController.playpauseGET);
+router.get(
+  '/playpause',
+  passport.authenticate('jwt', { session: false }),
+  musicController.playpauseGET
+);
 
-router.get('/next', musicController.nextGET);
+router.get(
+  '/next',
+  passport.authenticate('jwt', { session: false }),
+  musicController.nextGET
+);
 
-router.get('/prev', musicController.prevGET);
+router.get(
+  '/prev',
+  passport.authenticate('jwt', { session: false }),
+  musicController.prevGET
+);
 
-router.post('/time', musicController.timePOST);
+router.post(
+  '/time',
+  passport.authenticate('jwt', { session: false }),
+  musicController.timePOST
+);
 
 module.exports = router;

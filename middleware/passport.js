@@ -27,6 +27,7 @@ passport.use(
     FROM users
     INNER JOIN user_passes ON users.user_id=user_passes.user_id
     WHERE username=($1)`;
+    console.log(username);
     const findUserResult = pool.query(findUserQuery, [username]);
     findUserResult.then((response) => {
       const userFound = response.rowCount > 0;

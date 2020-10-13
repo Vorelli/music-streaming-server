@@ -1,4 +1,4 @@
-module.exports = function (app) {
+function controlGotoNextSong(app) {
   app.wss.clients.forEach((ws) => ws.send('next'));
   app.locals.playedSongs++;
   const nextQueue = app.nextQueue(app);
@@ -12,4 +12,6 @@ module.exports = function (app) {
   if (app.locals.playedSongs >= app.locals.currentQueue.length - 1) {
     app.locals.playedSongs = 0;
   }
-};
+}
+
+module.exports = controlGotoNextSong;

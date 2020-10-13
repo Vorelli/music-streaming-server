@@ -12,6 +12,7 @@ const nextQueue = require('./helpers/nextQueue');
 const prevQueue = require('./helpers/prevQueue');
 const afterEnumeration = require('./helpers/afterEnumeration');
 const WebSocket = require('ws');
+const compression = require('compression');
 
 require('dotenv').config();
 const app = express();
@@ -20,7 +21,7 @@ app.passport = passport.passport;
 app.pool = passport.pool;
 
 app.use(app.passport.initialize());
-
+app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -38,10 +39,11 @@ app.gotoNextSong = gotoNextSong;
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
   next();
 });
 
-const enumMusic = enumerateMusic();
+const enumMusic = enumerateMusic(app);
 app.locals.songs = new Promise((resolve, reject) => {
   enumMusic.then((songs) => {
     resolve(songs);

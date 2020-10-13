@@ -2,7 +2,6 @@ const setupQueue = require('./setupQueue');
 const status = require('../enums/status');
 
 module.exports = function (app, songs) {
-  console.log('after enum');
   const setupQueueRes = setupQueue(songs);
   return new Promise((resolve, reject) => {
     setupQueueRes.then((queue) => {
@@ -13,7 +12,7 @@ module.exports = function (app, songs) {
       app.locals.timestamp = 0;
       app.locals.status = status.PLAYING;
       app.locals.playedSongs = 0;
-      setInterval.bind(this, app.advanceTimestamp.bind(this, app), 10);
+      setInterval(app.advanceTimestamp.bind(this, app), 10);
       resolve();
     });
 

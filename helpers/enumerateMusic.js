@@ -4,9 +4,9 @@ const md5File = require('md5-file');
 const mp3Duration = require('mp3-duration');
 const nodeId3 = require('node-id3');
 const { bytesToBase64 } = require('byte-base64');
-const util = require('util');
+const sharp = require('sharp');
 
-module.exports = function enumerateMusic() {
+module.exports = function enumerateMusic(app) {
   const musicFilesDirectory = path.join(__dirname, '../public');
   const musicFiles = fs.readdirSync(musicFilesDirectory);
 
@@ -20,19 +20,21 @@ module.exports = function enumerateMusic() {
   const songs = {};
 
   return new Promise((resolve, reject) => {
-    addFilesToList(songs, musicFiles, musicFilesDirectory)
+    addFilesToList(songs, musicFiles, musicFilesDirectory, app)
       .then(() => {
-        console.log('resolving the songs!!!');
-        console.log(Object.keys(songs).length);
+        console.log(
+          Object.keys(songs).length + ' songs have been found and processed!'
+        );
         resolve(songs);
       })
       .catch((err) => reject(err));
   });
 };
 
-async function addFilesToList(songs, musicFiles, musicFilesDirectory) {
+async function addFilesToList(songs, musicFiles, musicFilesDirectory, app) {
   const directoryPromises = [];
   const filePromises = [];
+  const md5ToFPath = new Map();
 
   return new Promise((resolve, reject) => {
     const mp3FileRegex = /\.mp3$/;
@@ -41,17 +43,25 @@ async function addFilesToList(songs, musicFiles, musicFilesDirectory) {
       const stats = fs.lstatSync(fPath);
       if (stats.isDirectory() || stats.isSymbolicLink()) {
         const files = fs.readdirSync(fPath);
-        directoryPromises.push(addFilesToList(songs, files, fPath));
+        directoryPromises.push(addFilesToList(songs, files, fPath, app));
       } else if (stats.isFile() && mp3FileRegex.test(fPath)) {
         songs[fPath] = new Promise((resolve, reject) => {
           const result = {};
-          result.path = fPath;
+          let relativePath = path.relative(
+            path.resolve(__dirname, 'public'),
+            fPath
+          );
+          relativePath = relativePath.replace(/\.\.\\/g, '');
+          relativePath = relativePath.replace(/public\\/, '');
+          console.log(relativePath);
+          result.path = relativePath;
           const thisFilePromises = [];
 
           const md5 = md5File(fPath);
           thisFilePromises.push(md5);
           md5.then((md5) => {
             result.md5 = md5;
+            md5ToFPath.set(md5, fPath);
           });
           md5.catch((err) => reject(err));
 
@@ -68,8 +78,12 @@ async function addFilesToList(songs, musicFiles, musicFilesDirectory) {
             nodeId3.read(fPath, (err, tags) => {
               if (err) reject(err);
               else {
-                result.tags = formatTags(tags);
-                resolve(tags);
+                formatTags(tags)
+                  .then((val) => {
+                    result.tags = val;
+                    resolve(tags);
+                  })
+                  .catch((err) => reject(err));
               }
             });
           });
@@ -77,7 +91,7 @@ async function addFilesToList(songs, musicFiles, musicFilesDirectory) {
 
           Promise.all(thisFilePromises)
             .then((_) => {
-              /*  */
+              app.locals.md5ToFPath = md5ToFPath;
               resolve(result);
             })
             .catch((err) => reject(err));
@@ -99,21 +113,34 @@ async function addFilesToList(songs, musicFiles, musicFilesDirectory) {
 }
 
 function formatTags(tags) {
-  tags.year =
-    tags.raw.TDOR ||
-    tags.raw.TORY ||
-    tags.raw.TYER ||
-    tags.raw.TDRC ||
-    'Unknown Year';
-  tags.album = tags.album || 'Unknown Album';
-  tags.title = tags.title || 'Unknown Song Name';
-  tags.artist = tags.artist || 'Unknown Artist';
-  if (tags.image) {
-    const base64Prefix = 'data:image/' + tags.image.mime + ';base64,';
-    const imageByte64 = bytesToBase64(tags.image.imageBuffer);
-    const base64String = base64Prefix + imageByte64;
-    tags.image = base64String;
-  }
-  tags.raw = undefined;
-  return tags;
+  return new Promise((resolve, reject) => {
+    const newTags = tags;
+    newTags.year =
+      tags.raw.TDOR ||
+      tags.raw.TORY ||
+      tags.raw.TYER ||
+      tags.raw.TDRC ||
+      'Unknown Year';
+    newTags.album = tags.album || 'Unknown Album';
+    newTags.title = tags.title || 'Unknown Song Name';
+    newTags.artist = tags.artist || 'Unknown Artist';
+    newTags.genre = tags.genre || 'Unknown Genre';
+    if (tags.image) {
+      sharp(tags.image.imageBuffer)
+        .resize(164)
+        .jpeg()
+        .toBuffer()
+        .then((buffer) => {
+          const base64Prefix = 'data:image/' + 'jpeg' + ';base64,';
+          const imageByte64 = bytesToBase64(buffer);
+          const base64String = base64Prefix + imageByte64;
+          newTags.image = base64String;
+          resolve(newTags);
+        })
+        .catch((err) => reject(err));
+    } else {
+      resolve(newTags);
+    }
+    return newTags;
+  });
 }
