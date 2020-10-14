@@ -229,10 +229,17 @@ module.exports.songsGET = async function (req, res, next) {
 };
 
 module.exports.queueGET = function (req, res, next) {
-  res.json({
-    message: "Here's the queue:",
-    queue: req.app.locals.queues[req.app.locals.queuesIndex]
-  });
+  const queueOfPaths = req.app.locals.queues[req.app.locals.queuesIndex];
+  const songQueue = queueOfPaths.map((path) => req.app.locals.songs[path]);
+  Promise.all(songQueue)
+    .then((songs) => {
+      const md5Queue = songs.map((val) => val.md5);
+      res.json({
+        message: "Here's the queue:",
+        queue: md5Queue
+      });
+    })
+    .catch((err) => next(err));
 };
 
 module.exports.queuePOST = function (req, res, next) {

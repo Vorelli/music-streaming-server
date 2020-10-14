@@ -78,14 +78,15 @@ enumMusic.then(async (_) => {
 
   wss.on('connection', (ws) => {
     ws.send('Welcome to the server!');
+    ws.on('message', function incoming(message) {
+      if (message === 'error') ws.send('reset');
+    });
   });
 
   server.listen(process.env.PORT || 8080, '0.0.0.0', () => {
     console.log(
-      'server started on at ' +
-        server.address().address +
-        ':' +
-        server.address().port
+      'server started on at ' + server.address().address ||
+        'hi' + ':' + server.address().port
     );
   });
 });

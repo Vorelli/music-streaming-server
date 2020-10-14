@@ -126,6 +126,7 @@ function formatTags(tags) {
     newTags.artist = tags.artist || 'Unknown Artist';
     newTags.genre = tags.genre || 'Unknown Genre';
     if (tags.image) {
+      // up to a 90% improvement (in size) depending on the song
       sharp(tags.image.imageBuffer)
         .resize(164)
         .jpeg()
