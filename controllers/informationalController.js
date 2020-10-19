@@ -41,7 +41,7 @@ module.exports.commands = function (req, res, next) {
     [X][*] GET  at /control/playpause  - Plays/pauses current song.
     [X][*] GET  at /control/next       - Skips the current song and starts playing the next song.
     [X][*] GET  at /control/prev       - Goes to previous song.
-    [ ][*] POST at /control/time       - Controls the time of the currently played song.
+    [X][*] POST at /control/time       - Controls the time of the currently played song.
     * - Designates which actions require authorization.
     X - Designates which actions have been coded (DEVELOPMENT)
     `
