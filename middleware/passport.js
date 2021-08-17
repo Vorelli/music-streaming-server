@@ -10,7 +10,7 @@ const connectionSettings = {
   host: process.env.PGHOST || 'localhost',
   port: process.env.PGPORT || 5432,
   user: process.env.PGUSER || 'NodeUser',
-  password: process.env.PGPASSWORD || 'Password123!'
+  password: process.env.PGPASSWORD || 'Password123!',
 };
 
 const pool = new Pool(
@@ -54,7 +54,7 @@ passport.use(
   new JWTStrategy(
     {
       jwtFromRequest: extractJWT.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.SECRET
+      secretOrKey: process.env.SECRET,
     },
     (jwtPayload, done) => {
       const findUserQuery = `

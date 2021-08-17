@@ -2,3 +2,5 @@ node_modules/
 public/
 non/
 .env
+private/
+pnpm-lock.yaml

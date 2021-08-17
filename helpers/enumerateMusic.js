@@ -7,7 +7,7 @@ const { bytesToBase64 } = require('byte-base64');
 const sharp = require('sharp');
 
 module.exports = function enumerateMusic(app) {
-  const musicFilesDirectory = path.join(__dirname, '../public');
+  const musicFilesDirectory = path.join(__dirname, '../non');
   const musicFiles = fs.readdirSync(musicFilesDirectory);
 
   // a song should have all of the following information

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const musicController = require('../controllers/musicController');
-const { passport } = require('../middleware/passport');
+const firebaseAuthenticate = require('../middleware/firebaseAuthenticate');
 
 router.get('/', musicController.indexGET);
 
@@ -11,46 +11,18 @@ router.post('/signup', musicController.signupPOST);
 
 router.get('/authCheck', musicController.authCheckGET);
 
-router.get(
-  '/songs',
-  passport.authenticate('jwt', { session: false }),
-  musicController.songsGET
-);
+router.get('/songs', firebaseAuthenticate, musicController.songsGET);
 
-router.get(
-  '/queue',
-  passport.authenticate('jwt', { session: false }),
-  musicController.queueGET
-);
+router.get('/queue', firebaseAuthenticate, musicController.queueGET);
 
-router.post(
-  '/queue',
-  passport.authenticate('jwt', { session: false }),
-  musicController.queuePOST
-);
+router.post('/queue', firebaseAuthenticate, musicController.queuePOST);
 
-router.get(
-  '/playpause',
-  passport.authenticate('jwt', { session: false }),
-  musicController.playpauseGET
-);
+router.get('/playpause', firebaseAuthenticate, musicController.playpauseGET);
 
-router.get(
-  '/next',
-  passport.authenticate('jwt', { session: false }),
-  musicController.nextGET
-);
+router.get('/next', firebaseAuthenticate, musicController.nextGET);
 
-router.get(
-  '/prev',
-  passport.authenticate('jwt', { session: false }),
-  musicController.prevGET
-);
+router.get('/prev', firebaseAuthenticate, musicController.prevGET);
 
-router.post(
-  '/time',
-  passport.authenticate('jwt', { session: false }),
-  musicController.timePOST
-);
+router.post('/time', firebaseAuthenticate, musicController.timePOST);
 
 module.exports = router;

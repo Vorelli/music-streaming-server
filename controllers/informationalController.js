@@ -1,7 +1,7 @@
 module.exports.index = function (req, res, next) {
   res.json({
     message:
-      'Welcome to this music streaming server! GET at /commands to see a list of commands!'
+      'Welcome to this music streaming server! GET at /commands to see a list of commands!',
   });
 };
 
@@ -13,7 +13,7 @@ module.exports.timestamp = async function (req, res, next) {
   res.json({
     timestamp: req.app.locals.timestamp,
     message: 'Currently ' + req.app.locals.status,
-    duration
+    duration,
   });
 };
 
@@ -33,7 +33,7 @@ module.exports.commands = function (req, res, next) {
     [X][ ] GET  at /prevSongInfo       - Returns the previous song in the queue's info.
     [X][ ] GET  at /control            - Controls the server. Returns list of commands to be used to control server.
     [X][ ] POST at /control/login      - Returns a login token for use by the music-streaming-controller.
-    [X][ ] POST at /control/signup     - Sign up with the email, password and password confirmation in the reqest body. Returns a token if successful.
+    [X][ ] POST at /control/signup     - Sign up with the email, password and password confirmation in the request body. Returns a token if successful.
     [X][*] GET  at /control/authCheck  - Returns if token is authorized.
     [X][*] GET  at /control/songs      - Returns all of the songs the server can play.
     [X][*] GET  at /control/queue      - Returns the currently playing queue if authorized by token.
@@ -44,7 +44,7 @@ module.exports.commands = function (req, res, next) {
     [X][*] POST at /control/time       - Controls the time of the currently played song.
     * - Designates which actions require authorization.
     X - Designates which actions have been coded (DEVELOPMENT)
-    `
+    `,
   });
 };
 
