@@ -53,7 +53,6 @@ async function addFilesToList(songs, musicFiles, musicFilesDirectory, app) {
           );
           relativePath = relativePath.replace(/\.\.\\/g, '');
           relativePath = relativePath.replace(/public\\/, '');
-          console.log(relativePath);
           result.path = relativePath;
           const thisFilePromises = [];
 
@@ -103,7 +102,6 @@ async function addFilesToList(songs, musicFiles, musicFilesDirectory, app) {
         const promises = [...directoryPromises, ...filePromises];
         Promise.all(promises)
           .then(() => {
-            console.log('resolving');
             resolve('troll');
           })
           .catch((err) => reject(err));

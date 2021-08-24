@@ -1,9 +1,5 @@
 const validator = require('express-validator');
 const { validationResult } = require('express-validator');
-const jwt = require('jsonwebtoken');
-const { v5 } = require('uuid');
-const bcrypt = require('bcrypt');
-const { pool } = require('../middleware/passport');
 const formidable = require('formidable');
 const controlPausePlay = require('../helpers/controlPausePlay');
 const controlGotoNextSong = require('../helpers/controlGotoNextSong');
@@ -12,6 +8,8 @@ const {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } = require('firebase/auth');
+const { app } = require('firebase-admin');
+const afterEnumeration = require('../helpers/afterEnumeration');
 
 module.exports.indexGET = function (req, res, next) {
   res.json({
@@ -24,7 +22,7 @@ module.exports.indexGET = function (req, res, next) {
     [X][*] GET  at /control/authCheck  - Returns if token is authorized.
     [X][*] GET  at /control/songs      - Returns all of the songs the server can play.
     [X][*] GET  at /control/queue      - Returns the currently playing queue if authorized by token.
-    [ ][*] POST at /control/queue      - Sets the currently playing queue.
+    [X][*] POST at /control/queue      - Sets the currently playing queue.
     [X][*] GET  at /control/playpause  - Plays/pauses current song.
     [X][*] GET  at /control/next       - Skips the current song and starts playing the next song.
     [X][*] GET  at /control/prev       - Goes to previous song.
@@ -72,7 +70,6 @@ module.exports.loginPOST = [
           .auth()
           .createCustomToken(userCredential.user.uid)
           .then((token) => {
-            console.log(token);
             res.json({ token });
           });
       })
@@ -125,7 +122,6 @@ module.exports.signupPOST = [
             .auth()
             .createCustomToken(userCredential.user.uid)
             .then((token) => {
-              console.log(token);
               res.json({ token });
             });
         })
@@ -185,8 +181,34 @@ module.exports.queueGET = function (req, res, next) {
 };
 
 module.exports.queuePOST = function (req, res, next) {
-  // TODO: Implement this!!
-  res.json({ message: 'Set the queue!' });
+  const allMD5sExist = [];
+  req.body.queue.forEach((songMD5) => {
+    allMD5sExist.push(
+      new Promise(async (resolve, reject) => {
+        const songPath = await req.app.locals.md5ToFPath.get(songMD5);
+        if (songPath) resolve(songPath);
+        else reject(false);
+      })
+    );
+  });
+  Promise.all(allMD5sExist)
+    .then((queue) => {
+      const songs = {};
+      queue.forEach((songPath) => {
+        songs[songPath] = req.app.locals.songs[songPath];
+      });
+      clearInterval(req.app.locals.advanceTimestamp);
+      req.app.locals.timestamp = 0;
+      afterEnumeration(req.app, songs).catch((err) => console.error(err));
+
+      req.app.locals.timestamp = 0;
+    })
+    .then(() => {
+      //req.app.wss.clients.forEach((client) => client.send('reset'));
+    })
+    .catch((songs) => console.error('fail', songs));
+
+  res.json({ message: 'Set the queue!', queue: req.body.queue });
 };
 
 module.exports.playpauseGET = function (req, res, next) {

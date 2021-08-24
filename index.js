@@ -1,6 +1,5 @@
 const express = require('express');
 const morgan = require('morgan');
-const bodyParser = require('body-parser');
 const compression = require('compression');
 
 const indexRouter = require('./routes/index');
@@ -15,8 +14,8 @@ require('dotenv').config();
 const app = express();
 
 app.use(compression());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'));
 app.use((req, res, next) => {
   const key = req.header('Authorization');
@@ -56,7 +55,7 @@ enumMusic.then(async (_) => {
   app.use('/control', controlRouter);
 
   app.wss.on('connection', (ws) => {
-    ws.on('message', function incoming(message) {
+    ws.on('message', (message) => {
       if (message === 'error') ws.send('reset');
     });
   });

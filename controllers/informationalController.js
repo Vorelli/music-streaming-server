@@ -37,7 +37,7 @@ module.exports.commands = function (req, res, next) {
     [X][*] GET  at /control/authCheck  - Returns if token is authorized.
     [X][*] GET  at /control/songs      - Returns all of the songs the server can play.
     [X][*] GET  at /control/queue      - Returns the currently playing queue if authorized by token.
-    [ ][*] POST at /control/queue      - Sets the currently playing queue.
+    [X][*] POST at /control/queue      - Sets the currently playing queue.
     [X][*] GET  at /control/playpause  - Plays/pauses current song.
     [X][*] GET  at /control/next       - Skips the current song and starts playing the next song.
     [X][*] GET  at /control/prev       - Goes to previous song.

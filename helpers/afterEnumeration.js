@@ -12,7 +12,10 @@ module.exports = function (app, songs) {
       app.locals.timestamp = 0;
       app.locals.status = status.PLAYING;
       app.locals.playedSongs = 0;
-      setInterval(app.advanceTimestamp.bind(this, app), 10);
+      app.locals.advanceTimestamp = setInterval(
+        app.advanceTimestamp.bind(this, app),
+        10
+      );
       resolve();
     });
 
